@@ -9,13 +9,14 @@ import (
 
     "github.com/go-echarts/go-echarts/v2/charts"
     "github.com/go-echarts/go-echarts/v2/opts"
+    "github.com/go-echarts/go-echarts/v2/components"
 )
 
 var (
-    xMax float64 = 8
-    xMin float64 = 0
+    xMax float64 = 10
+    xMin float64 = -1
     yMin float64 = -1
-    yMax float64 = 1.2
+    yMax float64 = 9
 )
 
 // Функция для разделения строки
@@ -34,7 +35,7 @@ func split(s string, sep rune) []string {
     return result
 }
 
-//Функция для построения графика
+// Функция для построения графика
 func BuildGraph(DataFile string, TablePoints []Point) {
     // Открываем файл с данными
     file, err := os.Open(DataFile)
@@ -72,29 +73,39 @@ func BuildGraph(DataFile string, TablePoints []Point) {
         yValues = append(yValues, opts.LineData{Value: y})
     }
 
-    // Создание нового графика
+    // Создание графика линии
     lineChart := charts.NewLine()
     lineChart.SetGlobalOptions(charts.WithTitleOpts(opts.Title{Title: "Spline Points Plot"}))
 
-    // Установка оси X и добавление основной серии данных
-    lineChart.SetXAxis(xValues).AddSeries("Spline Data", yValues)
+    // Добавление основной серии данных с уникальной осью X
+    lineChart.SetXAxis(xValues).AddSeries("Spline ", yValues).
+        SetSeriesOptions(charts.WithLineChartOpts(opts.LineChart{}))
 
-	// Установка границ и меток для осей
-	lineChart.SetGlobalOptions(
-	    charts.WithXAxisOpts(opts.XAxis{Name: "X", Min: xMin, Max: xMax + 1}),
-	    charts.WithYAxisOpts(opts.YAxis{Name: "Y", Min: yMin, Max: yMax + 1}),
-	)
+    // Установка границ и меток для осей
+    lineChart.SetGlobalOptions(
+        charts.WithXAxisOpts(opts.XAxis{Name: "X", Min: xMin, Max: xMax + 1}),
+        charts.WithYAxisOpts(opts.YAxis{Name: "Y", Min: yMin, Max: yMax + 1}),
+    )
 
-    // Добавление дополнительных точек
-    var additionalX []string
-    var additionalY []opts.LineData
+    // Создание графика рассеивания (точек)
+    scatterChart := charts.NewScatter()
+    var scatterData []opts.ScatterData
     for _, point := range TablePoints {
-        additionalX = append(additionalX, fmt.Sprintf("%.6f", point.X)) // Форматируем X
-        additionalY = append(additionalY, opts.LineData{Value: point.Y})
+        scatterData = append(scatterData, opts.ScatterData{Value: []float64{point.X, point.Y}})
     }
+    scatterChart.SetXAxis(xValues).AddSeries("Points", scatterData).
+        SetSeriesOptions(charts.WithScatterChartOpts(opts.ScatterChart{}))
 
-    // Добавляем дополнительные точки
-    lineChart.AddSeries("Additional Points", additionalY).SetXAxis(additionalX)
+    // Установка глобальных опций для scatter
+    scatterChart.SetGlobalOptions(
+        charts.WithXAxisOpts(opts.XAxis{Name: "X", Min: xMin, Max: xMax + 1}),
+        charts.WithYAxisOpts(opts.YAxis{Name: "Y", Min: yMin, Max: yMax + 1}),
+    )
+
+    // Объединение графиков в одну страницу
+    page := components.NewPage()
+
+    page.AddCharts(lineChart, scatterChart)
 
     // Сохранение графика в HTML файл
     f, err := os.Create("line_chart.html")
@@ -103,10 +114,10 @@ func BuildGraph(DataFile string, TablePoints []Point) {
     }
     defer f.Close()
 
-    // Рендеринг графика в файл
-    if err := lineChart.Render(f); err != nil {
+    // Рендеринг графиков в файл
+    if err := page.Render(f); err != nil {
         log.Fatalf("Ошибка при рендеринге графика: %v", err)
     }
 
-    fmt.Println("График успешно построен и сохранен в ", DataFile)
+    fmt.Println("График успешно построен и сохранен в line_chart.html")
 }

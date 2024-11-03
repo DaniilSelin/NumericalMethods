@@ -4,12 +4,8 @@ import (
 	"fmt"
 	"os"
 )
-// Исходные данные: значения X и Y, по которым строится сплайн
-var X = [...]float64{0.29,0.40,0.81,0.83,1.27,1.72,2.11}
-var Y = [...]float64{1.336,1.494,2.247,2.293,3.560,5.584,8.248}
-
-// Число шагов для вычислений в интервале [xi, xi+1]
-var N int = 1000
+// N Число шагов для вычислений в интервале [xi, xi+1]
+var N, X, Y = LoadSetUpData()
 
 // Имя файла для сохранения рассчитанных точек сплайна
 var NameMethodData string = "LineSpline.dat"
@@ -32,12 +28,13 @@ func CalculateParamB(yi, yi_p, hi float64) (bi float64) {
 // ai, bi - параметры сплайна для интервала
 // xi, xi_p - координаты начальной и конечной точек интервала
 func LineSpline(ai, bi, xi, xi_p float64,) ([]float64, []float64) {
-	Px := make([]float64, N) // Массив X координат точек сплайна
-	Py := make([]float64, N) // Массив Y координат точек сплайна
+	// N+1 для охвата всего промежутка
+	Px := make([]float64, N+1) // Массив X координат точек сплайна
+	Py := make([]float64, N+1) // Массив Y координат точек сплайна
 	
 	// Вычисляем шаг для интервала
 	var h float64 = (xi - xi_p) / float64(N)
-	for i := 0; i < N; i++ {
+	for i := 0; i <= N; i++ {
 		x := xi_p + float64(i)*h // Позиция X для точки сплайна
 		Px[i] = x
 		Py[i] = ai + bi * (x - xi_p)  // Вычисляем Y на основе параметров
@@ -48,7 +45,7 @@ func LineSpline(ai, bi, xi, xi_p float64,) ([]float64, []float64) {
 // ParseToPoint преобразует массивы Px и Py в массив структур Point
 // Px, Py - массивы координат точек, возвращает массив Point
 func ParseToPoint(Px, Py []float64) []Point {
-	points := make([]Point, N)
+	points := make([]Point, N+1)
 
 	for i, _ := range Px {
 		points[i] = Point{
@@ -109,5 +106,5 @@ func main() {
 	end <- true
 
 	// Построение графика по данным сплайна и исходным точкам
-	BuildGraph(NameMethodData, TablePoints)
+	//BuildGraph(NameMethodData, TablePoints)
 }

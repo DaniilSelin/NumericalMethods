@@ -5,12 +5,9 @@ import (
 	"os"
 )
 
-// Заданные координаты X и Y для построения сплайна
-var X = [...]float64{0.29, 0.40, 0.81, 0.83, 1.27, 1.72, 2.11}
-var Y = [...]float64{1.336, 1.494, 2.247, 2.293, 3.560, 5.584, 8.248}
-
 // Количество шагов для интерполяции на каждом интервале
-var N int = 1000
+// Заданные координаты X и Y для построения сплайна
+var N, X, Y = LoadSetUpData()
 
 // Имя файла для хранения данных, вычисленных точек параболического сплайна
 var NameMethodData string = "ParabolicSpline.dat"
@@ -48,11 +45,11 @@ func CalculateParamC(ci_next, yi_n, yi, yi_p, xi_n, xi, xi_p float64) (ci float6
 // ParabolicSpline рассчитывает значения x и y для параболического сплайна 
 // на интервале [xi_p, xi] с заданными параметрами a, b, c
 func ParabolicSpline(ai, bi, ci, xi, xi_p float64) ([]float64, []float64) {
-	Px := make([]float64, N)
-	Py := make([]float64, N)
+	Px := make([]float64, N+1)
+	Py := make([]float64, N+1)
 	// Шаг интерполяции
 	var h float64 = (xi - xi_p) / float64(N)
-	for i := 0; i < N; i++ {
+	for i := 0; i <= N; i++ {
 		x := xi_p + float64(i)*h
 		Px[i] = x
 		Py[i] = ai + bi*(x - xi_p) + ci*(x - xi_p)*(x - xi_p)
@@ -62,7 +59,7 @@ func ParabolicSpline(ai, bi, ci, xi, xi_p float64) ([]float64, []float64) {
 
 // ParseToPoint преобразует массивы x и y значений в срез точек типа Point
 func ParseToPoint(Px, Py []float64) []Point {
-	points := make([]Point, N)
+	points := make([]Point, N+1)
 
 	for i, _ := range Px {
 		points[i] = Point{

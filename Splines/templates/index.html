@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генерация Сплайна</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            width: 80%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 40%; /* Ширина контейнера формы */
+            margin-right: 20px; /* Отступ между контейнерами */
+        }
+
+        .table-container {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            width: 40%; /* Ширина таблицы */
+            max-height: 250px; /* Максимальная высота таблицы */
+            overflow-y: auto; /* Прокрутка по вертикали */
+        }
+
+        label {
+            font-size: 1.2em;
+            margin-bottom: -10px;
+            margin-top: 1px;
+            display: block;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px; /* Уменьшено пространство между полями */
+            border: none;
+            border-radius: 15px;
+            font-size: 1em;
+            height: 40px; /* Увеличена высота полей */
+            min-width: 120px; /* Минимальная ширина для предотвращения сжатия */
+            margin-bottom: 40px;
+            margin-top: 30px; /* Сместить вниз на 30 пикселей */
+        }
+
+        input {
+            width: 90%; /* Уменьшена ширина поля ввода */
+            padding: 10px;
+            margin-bottom: 10px; /* Уменьшено пространство между полями */
+            border: none;
+            border-radius: 15px;
+            font-size: 1em;
+            height: 25px; /* Увеличена высота полей */
+            min-width: 120px; /* Минимальная ширина для предотвращения сжатия */
+            margin-bottom: 40px;
+            margin-top: 30px; /* Сместить вниз на 30 пикселей */
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1.2em;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            width: 100%; /* Кнопка занимает всю ширину */
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            border: 1px solid white;
+            padding: 15px; /* Увеличиваем высоту ячеек */
+            text-align: center;
+            vertical-align: middle; /* Центрируем текст вертикально */
+            min-height: 50px; /* Минимальная высота для ячеек */
+        }
+
+        th {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+
+        img {
+            max-width: 80%;
+            height: auto;
+            border: 5px solid #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 20px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            font-size: 0.9em;
+            color: #ffffff;
+        }
+
+        .footer a {
+            color: #ffffff;
+            text-decoration: none;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+        }
+
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .controls button:last-child {
+            margin-bottom: 0; /* Убираем отступ у последней кнопки */
+        }
+    </style>
+</head>
+<body>
+    <h1>Генерация Сплайна</h1>
+    <div class="container">
+        <div class="form-container">
+            <label for="splineType">Выберите тип сплайна:</label>
+            <select id="splineType">
+                <option value="cubic">Кубический</option>
+                <option value="parabolic">Параболический</option>
+                <option value="line">Линейный</option>
+            </select>
+
+            <label for="steps">Количество шагов:</label>
+            <input type="number" id="steps" min="1" value="100">
+        </div>
+
+        <div class="table-container">
+            <h2>Точки</h2>
+            <table id="pointsTable">
+                <thead>
+                    <tr>
+                        <th>X</th>
+                        <th>Y</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td contenteditable="true" onblur="checkInput(this)"><span>&nbsp;</span></td>
+                        <td contenteditable="true" onblur="checkInput(this)"><span>&nbsp;</span></td>
+                    </tr>
+                    <!-- Другие строки здесь... -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="controls">
+        <button style="margin-bottom:10px" id="clearButton">Очистить таблицу</button>
+        <button id="generateButton">Сгенерировать сплайн</button>
+    </div>
+
+    <script>
+        function checkInput(cell) {
+            // Заменяем неразрывные пробелы на обычные пробелы и убираем их вокруг текста
+            const value = cell.textContent.replace(/\u00a0/g, '').trim();
+
+            // Проверяем, что поле не пустое и содержит только цифры с одной возможной точкой
+            if (value && !/^\d+(\.\d+)?$/.test(value)) {
+                alert('Пожалуйста, введите корректное числовое значение.');
+                // Если значение некорректное, просто оставляем его как есть, не очищаем
+            }
+        }
+
+        document.getElementById('generateButton').addEventListener('click', function() {
+            const step = document.getElementById('steps').value;
+            const splineType = document.getElementById('splineType').value;
+            const tableRows = document.querySelectorAll('#pointsTable tbody tr');
+
+            let points = [];
+            tableRows.forEach(row => {
+                const x = row.cells[0].textContent.trim();
+                const y = row.cells[1].textContent.trim();
+                if (x && y) {
+                    points.push(`${x},${y}`);
+                }
+            });
+
+            const splineInfo = `${splineType} ${step}`;
+
+            const data = {
+                points: points.join(';'),
+                splineInfo: splineInfo,
+            };
+
+            fetch('http://localhost:5000/submit', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Данные успешно отправлены');
+                    return response.json();
+                } else {
+                    throw new Error('Ошибка при отправке данных');
+                }
+            })
+            .then(data => {
+                console.log(data);
+                window.location.href = '/result';
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+            });
+        });
+
+        function addNewRow() {
+            const tableBody = document.querySelector('#pointsTable tbody');
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+                <td contenteditable="true" onblur="checkInput(this)"><span>&nbsp;</span></td>
+                <td contenteditable="true" onblur="checkInput(this)"><span>&nbsp;</span></td>
+            `;
+            tableBody.appendChild(newRow);
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Функция для загрузки данных из файла
+            fetch('/load_data')
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.querySelector('#pointsTable tbody');
+                    tableBody.innerHTML = ''; // Очистить текущие строки
+
+                    if (data.length > 0) {
+                        data.forEach(line => {
+                            const [x, y] = line.split(' '); // Разделяем координаты по пробелу
+                            const newRow = document.createElement('tr');
+                            newRow.innerHTML = `
+                                <td contenteditable="true" onblur="checkInput(this)"><span>${x || '&nbsp;'}</span></td>
+                                <td contenteditable="true" onblur="checkInput(this)"><span>${y || '&nbsp;'}</span></td>
+                            `;
+                            tableBody.appendChild(newRow);
+                        });
+                    }
+
+                    for (let i = 0; i < 20; i++) {
+                        addNewRow();
+                    }
+                })
+                .catch(error => {
+                    console.error('Ошибка загрузки данных:', error);
+                    // Если произошла ошибка, добавляем 20 пустых строк
+                    for (let i = 0; i < 20; i++) {
+                        addNewRow();
+                    }
+                });
+            });
+
+        // Изначально добавляем несколько строк
+        for (let i = 0; i < 100; i++) {
+            addNewRow();
+        }
+
+        // Навигация по таблице
+        document.addEventListener('keydown', function(event) {
+            const activeElement = document.activeElement;
+            const cell = activeElement.closest('td'); // Получаем текущую ячейку
+
+            // Проверяем, существует ли ячейка и является ли она редактируемой
+            if (cell && cell.contentEditable === 'true') {
+                const row = cell.parentNode; // Получаем родительскую строку
+                const tableBody = document.querySelector('#pointsTable tbody');
+
+                if (event.key === 'Enter' || event.key === 'ArrowDown') {
+                    event.preventDefault(); // Отменяем действие по умолчанию
+                    const nextRow = row.nextElementSibling; // Получаем следующую строку
+                    if (nextRow) {
+                        const nextCell = nextRow.cells[cell.cellIndex]; // Получаем соответствующую ячейку следующей строки
+                        if (nextCell) {
+                            nextCell.focus(); // Перемещаем фокус на следующую ячейку
+                        }
+                    }
+                } else if (event.key === 'ArrowUp') {
+                    event.preventDefault(); // Отменяем действие по умолчанию
+                    const prevRow = row.previousElementSibling; // Получаем предыдущую строку
+                    if (prevRow) {
+                        const prevCell = prevRow.cells[cell.cellIndex]; // Получаем соответствующую ячейку предыдущей строки
+                        if (prevCell) {
+                            prevCell.focus(); // Перемещаем фокус на предыдущую ячейку
+                        }
+                    }
+                }
+            }
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function() {
+            const tableCells = document.querySelectorAll('#pointsTable tbody td');
+            tableCells.forEach(cell => {
+                cell.innerHTML = '&nbsp;'; // Вставляем неразрывный пробел
+            });
+            console.log('Таблица очищена');
+        });
+    </script>
+</body>
+</html>
